@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>London Trip Planner - Dec 24-29, 2025</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎄 London Christmas Trip Planner</h1>
+            <p class="subtitle">December 24-29, 2025 | Optimized for Parking & Family Travel</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: Controls & Data Entry -->
+            <aside class="control-panel">
+                <section class="input-section">
+                    <h2>📍 Add Locations</h2>
+                    <form id="location-form">
+                        <input type="text" id="place-name" placeholder="Place name (e.g., British Museum)" required>
+                        <input type="text" id="place-address" placeholder="Address (optional)">
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="infant-friendly">
+                                👶 Infant-friendly
+                            </label>
+                            <label>
+                                <input type="checkbox" id="indoor">
+                                🏠 Indoor (weather-proof)
+                            </label>
+                        </div>
+                        <textarea id="place-notes" placeholder="Notes (opening hours, parking info, etc.)" rows="2"></textarea>
+                        <button type="submit" class="btn-primary">Add Location</button>
+                    </form>
+                    
+                    <div class="bulk-import">
+                        <h3>Or paste list of places:</h3>
+                        <textarea id="bulk-places" placeholder="One place per line" rows="5"></textarea>
+                        <button id="bulk-import-btn" class="btn-secondary">Import List</button>
+                    </div>
+                </section>
+
+                <section class="locations-list">
+                    <h2>📋 Your Locations (<span id="location-count">0</span>)</h2>
+                    <div id="locations-container"></div>
+                </section>
+
+                <section class="optimization-controls">
+                    <h2>🚗 Optimize Trip</h2>
+                    <div class="form-group">
+                        <label>Max parking moves per day:</label>
+                        <input type="number" id="max-moves" value="2" min="1" max="5">
+                    </div>
+                    <div class="form-group">
+                        <label>Average walking distance (km):</label>
+                        <input type="number" id="max-walk" value="1.5" min="0.5" max="3" step="0.1">
+                    </div>
+                    <button id="optimize-btn" class="btn-primary">🎯 Optimize Itinerary</button>
+                </div>
+            </aside>
+
+            <!-- Center: Map -->
+            <main class="map-container">
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button id="center-map" class="btn-icon" title="Center on London">📍</button>
+                    <button id="toggle-clusters" class="btn-icon" title="Toggle parking zones">🅿️</button>
+                </div>
+            </main>
+
+            <!-- Right Panel: Itinerary -->
+            <aside class="itinerary-panel">
+                <h2>📅 Daily Itinerary</h2>
+                <div class="day-tabs">
+                    <button class="day-tab active" data-day="1">Tue 24</button>
+                    <button class="day-tab" data-day="2">Wed 25</button>
+                    <button class="day-tab" data-day="3">Thu 26</button>
+                    <button class="day-tab" data-day="4">Fri 27</button>
+                    <button class="day-tab" data-day="5">Sat 28</button>
+                    <button class="day-tab" data-day="6">Sun 29</button>
+                </div>
+                
+                <div id="itinerary-content">
+                    <div class="empty-state">
+                        <p>Add locations and click "Optimize Itinerary" to generate your trip plan.</p>
+                    </div>
+                </div>
+
+                <div class="itinerary-actions">
+                    <button id="export-json" class="btn-secondary">💾 Export JSON</button>
+                    <button id="export-print" class="btn-secondary">🖨️ Print View</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="data.js"></script>
+    <script src="map.js"></script>
+    <script src="optimizer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

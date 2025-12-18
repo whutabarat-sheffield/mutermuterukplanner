@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>London Trip Daily Planner - December 2025</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a3a5c 0%, #2c5f8d 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: #2c5f8d;
+            padding: 10px;
+            gap: 5px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-tab {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #2c5f8d;
+            font-weight: bold;
+        }
+
+        .day-section {
+            display: none;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .day-section.active {
+            display: block;
+        }
+
+        .day-header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .day-header h2 {
+            color: #2c5f8d;
+            margin-bottom: 10px;
+        }
+
+        .day-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            color: #666;
+        }
+
+        .day-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .map-container {
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .timeline {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .timeline h3 {
+            color: #2c5f8d;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-time {
+            min-width: 100px;
+            font-weight: bold;
+            color: #2c5f8d;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-location {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .timeline-activity {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .timeline-note {
+            background: #fff3cd;
+            color: #856404;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .parking-badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2c5f8d;
+        }
+
+        .info-card.warning {
+            border-left-color: #ffc107;
+            background: #fff8e1;
+        }
+
+        .info-card.success {
+            border-left-color: #28a745;
+            background: #e8f5e9;
+        }
+
+        .info-card h4 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .info-card p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        @media print {
+            .nav-tabs { display: none; }
+            .day-section { display: block !important; page-break-after: always; }
+            .map-container { height: 300px; }
+        }
+
+        @media (max-width: 600px) {
+            .day-meta { flex-direction: column; gap: 10px; }
+            .timeline-item { flex-direction: column; gap: 5px; }
+            .timeline-time { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>London Christmas Trip 2025</h1>
+        <p>December 24-30 | 7 People | Driver: Windo | Base: Colindale NW9</p>
+    </div>
+
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="showDay(0)">Dec 24 (Tue)</button>
+        <button class="nav-tab" onclick="showDay(1)">Dec 25 (Wed)</button>
+        <button class="nav-tab" onclick="showDay(2)">Dec 26 (Thu)</button>
+        <button class="nav-tab" onclick="showDay(3)">Dec 27 (Fri)</button>
+        <button class="nav-tab" onclick="showDay(4)">Dec 28 (Sat)</button>
+        <button class="nav-tab" onclick="showDay(5)">Dec 29 (Sun)</button>
+        <button class="nav-tab" onclick="showDay(6)">Dec 30 (Mon)</button>
+    </nav>
+
+    <!-- Day 1: December 24 -->
+    <section class="day-section active" id="day-0">
+        <div class="day-header">
+            <h2>Tuesday, December 24 - Arrival Day</h2>
+            <div class="day-meta">
+                <span>Depart: 05:30</span>
+                <span>Return: 18:00</span>
+                <span>Total: 7 hours</span>
+                <span>Overtime: 0</span>
+                <span>Congestion Charge: £15</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div> Route</div>
+            <div class="legend-item"><div class="legend-color" style="background: #3498db; width: 12px; height: 12px; border-radius: 50%;"></div> Location</div>
+            <div class="legend-item"><div class="legend-color" style="background: #27ae60; width: 12px; height: 12px; border-radius: 50%;"></div> Parking</div>
+        </div>
+
+        <div class="map-container" id="map-0"></div>
+
+        <div class="timeline">
+            <h3>Itinerary</h3>
+            <div class="timeline-item">
+                <div class="timeline-time">05:30-09:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Heathrow Airport <span class="parking-badge">Short Stay Parking</span></div>
+                    <div class="timeline-activity">Pickup arriving guests from Bali</div>
+                    <div class="timeline-note">Flight lands ~08:00. Allow time for customs + luggage.</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">09:30-13:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Colindale Accommodation</div>
+                    <div class="timeline-activity">Check-in & REST</div>
+                    <div class="timeline-note">Critical jet lag recovery time. Do not skip!</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">13:45-15:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Oxford Street / Primark <span class="parking-badge">NCP Cavendish Square</span></div>
+                    <div class="timeline-activity">Shopping - buy warm clothes for guests from Bali</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">15:30-17:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Covent Garden</div>
+                    <div class="timeline-activity">Explore Christmas market, street performers</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">17:00-18:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Winter Lights Walk</div>
+                    <div class="timeline-activity">Evening lights in West End area</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card warning">
+                <h4>Backup Plan</h4>
+                <p>If flight delayed >3 hours, cancel afternoon activities. Rest is priority.</p>
+            </div>
+            <div class="info-card">
+                <h4>Parking Cost</h4>
+                <p>Heathrow: £15-20 | Cavendish Square: £15-20</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Day 2: December 25 -->
+    <section class="day-section" id="day-1">
+        <div class="day-header">
+            <h2>Wednesday, December 25 - Christmas Day</h2>
+            <div class="day-meta">
+                <span>Depart: 10:30</span>
+                <span>Return: 17:00</span>
+                <span>Total: 6.5 hours</span>
+                <span>Overtime: 0</span>
+                <span>Parking: FREE (street)</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #9b59b6;"></div> Walking Route</div>
+        </div>
+
+        <div class="map-container" id="map-1"></div>
+
+        <div class="timeline">
+            <h3>Itinerary</h3>
+            <div class="timeline-item">
+                <div class="timeline-time">11:15-12:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">South Bank</div>
+                    <div class="timeline-activity">Walk along the Thames</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">12:30-13:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Westminster Bridge / Big Ben</div>
+                    <div class="timeline-activity">Photos with iconic landmarks</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">13:30-15:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Chinatown</div>
+                    <div class="timeline-activity">Lunch (one of few areas open on Christmas)</div>
+                    <div class="timeline-note">Book restaurant in advance - limited options</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">15:00-16:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Central London</div>
+                    <div class="timeline-activity">Quiet walk, enjoy empty streets</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card warning">
+                <h4>Christmas Closures</h4>
+                <p>Most attractions CLOSED. No public transport running. Free street parking.</p>
+            </div>
+            <div class="info-card success">
+                <h4>Good News</h4>
+                <p>No congestion charge. No ULEZ (suspended). Quiet roads.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Day 3: December 26 -->
+    <section class="day-section" id="day-2">
+        <div class="day-header">
+            <h2>Thursday, December 26 - Boxing Day</h2>
+            <div class="day-meta">
+                <span>Depart: 09:30</span>
+                <span>Return: 23:30</span>
+                <span>Total: 8 hours</span>
+                <span>Overtime: 0 (if driver goes home during show)</span>
+                <span>Parking Moves: 2</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div> Drive</div>
+            <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div> Walk</div>
+        </div>
+
+        <div class="map-container" id="map-2"></div>
+
+        <div class="timeline">
+            <h3>Itinerary</h3>
+            <div class="timeline-item">
+                <div class="timeline-time">10:15-12:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Borough Market <span class="parking-badge">Snowsfields Car Park</span></div>
+                    <div class="timeline-activity">Brunch and explore food stalls</div>
+                    <div class="timeline-note">Opens 10:00. Arrive early for best experience.</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">13:00-15:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Westminster Abbey <span class="parking-badge">Q-Park Westminster</span></div>
+                    <div class="timeline-activity">Guided visit (pre-booked tickets)</div>
+                    <div class="timeline-note">BOOKING REQUIRED - 7 tickets @ £169 total</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">15:30-18:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Soho</div>
+                    <div class="timeline-activity">Explore, early dinner</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">19:30-22:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">West End Musical</div>
+                    <div class="timeline-activity">Theatre show (5 people attend)</div>
+                    <div class="timeline-note">BOOKING CRITICAL - 5 tickets @ £250 total</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card">
+                <h4>Infant Care Plan</h4>
+                <p>Driver + 1 parent return to Colindale with infant during musical. Pickup group at 22:30.</p>
+            </div>
+            <div class="info-card success">
+                <h4>Route Optimized</h4>
+                <p>Tower Bridge moved to Dec 29. Now only 2 parking moves instead of 4.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Day 4: December 27 -->
+    <section class="day-section" id="day-3">
+        <div class="day-header">
+            <h2>Friday, December 27 - Skiing Day</h2>
+            <div class="day-meta">
+                <span>Depart: 09:00</span>
+                <span>Return: 18:00</span>
+                <span>Total: 9 hours</span>
+                <span>Overtime: 1 hour</span>
+                <span>Parking: FREE</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #2ecc71;"></div> M1 Motorway Route</div>
+        </div>
+
+        <div class="map-container" id="map-3"></div>
+
+        <div class="timeline">
+            <h3>Itinerary</h3>
+            <div class="timeline-item">
+                <div class="timeline-time">09:00-10:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Drive to Snow Centre</div>
+                    <div class="timeline-activity">Via M1 motorway (17 miles, ~25-30 min)</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">10:00-11:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Snow Centre <span class="parking-badge">FREE On-site</span></div>
+                    <div class="timeline-activity">Check-in, get equipment</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">11:00-13:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Snow Centre Slopes</div>
+                    <div class="timeline-activity">2-hour beginner ski lesson (5 people)</div>
+                    <div class="timeline-note">BOOKING HIGH PRIORITY - £295 total</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">13:00-14:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Snow Centre Cafe</div>
+                    <div class="timeline-activity">Lunch together</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">14:00-15:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Return to Colindale</div>
+                    <div class="timeline-activity">Drive back</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card">
+                <h4>Infant Care Plan</h4>
+                <p>Driver + 1 parent stay at Snow Centre cafe with infant. Viewing gallery available to watch skiing.</p>
+            </div>
+            <div class="info-card success">
+                <h4>Outside London</h4>
+                <p>No congestion charge. No ULEZ. Free parking at venue.</p>
+            </div>
+            <div class="info-card warning">
+                <h4>Backup</h4>
+                <p>Marlowes Shopping Centre is 10 min drive if infant needs change of scenery.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Day 5: December 28 -->
+    <section class="day-section" id="day-4">
+        <div class="day-header">
+            <h2>Saturday, December 28 - West London Day</h2>
+            <div class="day-meta">
+                <span>Depart: 09:30</span>
+                <span>Return: 20:00</span>
+                <span>Total: 10.5 hours</span>
+                <span>Overtime: 2.5 hours</span>
+                <span>Parking Moves: 2</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div> Drive</div>
+            <div class="legend-item"><div class="legend-color" style="background: #f39c12;"></div> Walk</div>
+        </div>
+
+        <div class="map-container" id="map-4"></div>
+
+        <div class="timeline">
+            <h3>Itinerary</h3>
+            <div class="timeline-item">
+                <div class="timeline-time">10:00-13:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Notting Hill + Portobello Road <span class="parking-badge">Q-Park Queensway</span></div>
+                    <div class="timeline-activity">Saturday market (BEST day for full market)</div>
+                    <div class="timeline-note">Arrive early for best antiques and food stalls</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">13:30-14:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Hyde Park <span class="parking-badge">Q-Park Park Lane</span></div>
+                    <div class="timeline-activity">Short walk through park to Winter Wonderland</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">14:00-17:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Winter Wonderland</div>
+                    <div class="timeline-activity">Rides, food, Christmas market</div>
+                    <div class="timeline-note">BOOKING CRITICAL - 7 tickets @ £145 total</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">17:30-19:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Harrods</div>
+                    <div class="timeline-activity">Browse luxury department store (better hours on Sat)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card success">
+                <h4>Route Optimized</h4>
+                <p>All locations in West London cluster. Tower of London moved to Dec 29.</p>
+            </div>
+            <div class="info-card warning">
+                <h4>Traffic Warning</h4>
+                <p>Winter Wonderland causes heavy traffic around Hyde Park. Allow 20-35 min for the 1.5 mile Notting Hill to Hyde Park drive.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Day 6: December 29 -->
+    <section class="day-section" id="day-5">
+        <div class="day-header">
+            <h2>Sunday, December 29 - East + South London (Final Driving Day)</h2>
+            <div class="day-meta">
+                <span>Depart: 08:30</span>
+                <span>Return: 18:30</span>
+                <span>Total: 10 hours</span>
+                <span>Overtime: 2 hours</span>
+                <span>Parking Moves: 2</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div> Drive</div>
+            <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div> Walk</div>
+        </div>
+
+        <div class="map-container" id="map-5"></div>
+
+        <div class="timeline">
+            <h3>Itinerary</h3>
+            <div class="timeline-item">
+                <div class="timeline-time">09:30-12:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Tower of London <span class="parking-badge">Minories Car Park</span></div>
+                    <div class="timeline-activity">Full visit - Crown Jewels, White Tower, Beefeaters</div>
+                    <div class="timeline-note">BOOKING HIGH PRIORITY - 7 tickets @ £192 total</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">12:30-13:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Tower Bridge</div>
+                    <div class="timeline-activity">Photos (5 min walk from Tower)</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">13:00-14:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Near Tower Bridge</div>
+                    <div class="timeline-activity">Lunch at local restaurant</div>
+                    <div class="timeline-note">Borough Market CLOSED on Sundays</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">15:00-16:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Drive to Westminster</div>
+                    <div class="timeline-activity">Transit (allow 25-35 min for Sunday afternoon)</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">16:30-17:30</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">London Eye <span class="parking-badge">Q-Park Westminster</span></div>
+                    <div class="timeline-activity">Ride at sunset/dusk for city lights</div>
+                    <div class="timeline-note">BOOKING HIGH PRIORITY - 7 tickets @ £210. Sunset ~15:55</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card success">
+                <h4>Route Optimized</h4>
+                <p>Linear east-to-south route. Tower + Tower Bridge now clustered (300m apart). No zigzagging.</p>
+            </div>
+            <div class="info-card">
+                <h4>End of Driving Duties</h4>
+                <p>This is the driver's final day. Dec 30 is day off.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Day 7: December 30 -->
+    <section class="day-section" id="day-6">
+        <div class="day-header">
+            <h2>Monday, December 30 - Independent Day (Driver Day Off)</h2>
+            <div class="day-meta">
+                <span>Transport: Northern Line Tube</span>
+                <span>Tube Cost: ~£50 total (6 people)</span>
+                <span>Driver: Day Off</span>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background: #9b59b6;"></div> Tube Route</div>
+            <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div> Walking</div>
+        </div>
+
+        <div class="map-container" id="map-6"></div>
+
+        <div class="timeline">
+            <h3>Itinerary (Guests Independent)</h3>
+            <div class="timeline-item">
+                <div class="timeline-time">10:15</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Buckingham Palace</div>
+                    <div class="timeline-activity">Arrive early for good viewing spot</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">11:00-11:45</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Buckingham Palace</div>
+                    <div class="timeline-activity">Changing of the Guard ceremony</div>
+                    <div class="timeline-note">ONLY on Dec 30 (cancelled Dec 29)</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">12:00-14:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">National Gallery</div>
+                    <div class="timeline-activity">Visit (FREE entry)</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">15:00-17:00</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">British Museum</div>
+                    <div class="timeline-activity">Visit (FREE entry)</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-time">Optional</div>
+                <div class="timeline-content">
+                    <div class="timeline-location">Shoreditch</div>
+                    <div class="timeline-activity">If energy permits - trendy East London</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card">
+                <h4>Tube Route</h4>
+                <p>Colindale → Charing Cross (Northern line) → Walk to Palace → Walk to Gallery → Tube to British Museum → Return</p>
+            </div>
+            <div class="info-card warning">
+                <h4>Accessibility Note</h4>
+                <p>Colindale is step-free. Consider alternative routes if using pushchair at some central stations.</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Location data
+        const locations = {
+            colindale: [51.5955, -0.2499],
+            heathrow: [51.4700, -0.4543],
+            oxfordStreet: [51.5152, -0.1418],
+            coventGarden: [51.5117, -0.1240],
+            southBank: [51.5055, -0.1150],
+            westminster: [51.4994, -0.1273],
+            chinatown: [51.5114, -0.1315],
+            boroughMarket: [51.5055, -0.0910],
+            westminsterAbbey: [51.4994, -0.1273],
+            soho: [51.5137, -0.1337],
+            westEnd: [51.5115, -0.1280],
+            snowCentre: [51.7520, -0.4690],
+            nottingHill: [51.5170, -0.2050],
+            hydePark: [51.5073, -0.1657],
+            winterWonderland: [51.5073, -0.1600],
+            harrods: [51.4994, -0.1633],
+            towerOfLondon: [51.5081, -0.0759],
+            towerBridge: [51.5055, -0.0754],
+            londonEye: [51.5033, -0.1195],
+            buckinghamPalace: [51.5014, -0.1419],
+            nationalGallery: [51.5089, -0.1283],
+            britishMuseum: [51.5194, -0.1270],
+            trafalgarSquare: [51.5080, -0.1281]
+        };
+
+        // Parking locations
+        const parking = {
+            ncpCavendish: [51.5165, -0.1445],
+            snowsfields: [51.5020, -0.0850],
+            qParkWestminster: [51.4975, -0.1265],
+            qParkQueensway: [51.5115, -0.1875],
+            qParkParkLane: [51.5045, -0.1505],
+            minories: [51.5105, -0.0745]
+        };
+
+        let maps = [];
+
+        function initMaps() {
+            // Day 0: Dec 24
+            maps[0] = L.map('map-0').setView([51.52, -0.25], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(maps[0]);
+
+            // Route: Colindale -> Heathrow -> Colindale -> Oxford St -> Covent Garden
+            const day0Route = [locations.colindale, locations.heathrow, locations.colindale, locations.oxfordStreet, locations.coventGarden];
+            L.polyline(day0Route, {color: '#e74c3c', weight: 3, dashArray: '10, 5'}).addTo(maps[0]);
+
+            addMarker(maps[0], locations.colindale, 'Colindale (Base)', '#2c5f8d');
+            addMarker(maps[0], locations.heathrow, 'Heathrow Airport', '#3498db');
+            addMarker(maps[0], locations.oxfordStreet, 'Oxford Street', '#3498db');
+            addMarker(maps[0], locations.coventGarden, 'Covent Garden', '#3498db');
+            addMarker(maps[0], parking.ncpCavendish, 'NCP Cavendish Sq', '#27ae60');
+
+            // Day 1: Dec 25
+            maps[1] = L.map('map-1').setView([51.508, -0.12], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(maps[1]);
+
+            const day1Route = [locations.southBank, locations.westminster, locations.chinatown];
+            L.polyline(day1Route, {color: '#9b59b6', weight: 3}).addTo(maps[1]);
+
+            addMarker(maps[1], locations.colindale, 'Colindale (Base)', '#2c5f8d');
+            addMarker(maps[1], locations.southBank, 'South Bank', '#3498db');
+            addMarker(maps[1], locations.westminster, 'Westminster Bridge', '#3498db');
+            addMarker(maps[1], locations.chinatown, 'Chinatown', '#3498db');
+
+            // Day 2: Dec 26
+            maps[2] = L.map('map-2').setView([51.505, -0.11], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(maps[2]);
+
+            const day2Drive = [locations.colindale, locations.boroughMarket];
+            const day2Drive2 = [locations.boroughMarket, locations.westminsterAbbey];
+            const day2Walk = [locations.westminsterAbbey, locations.soho, locations.westEnd];
+
+            L.polyline(day2Drive, {color: '#e74c3c', weight: 3, dashArray: '10, 5'}).addTo(maps[2]);
+            L.polyline(day2Drive2, {color: '#e74c3c', weight: 3, dashArray: '10, 5'}).addTo(maps[2]);
+            L.polyline(day2Walk, {color: '#3498db', weight: 3}).addTo(maps[2]);
+
+            addMarker(maps[2], locations.boroughMarket, 'Borough Market', '#3498db');
+            addMarker(maps[2], locations.westminsterAbbey, 'Westminster Abbey', '#3498db');
+            addMarker(maps[2], locations.soho, 'Soho', '#3498db');
+            addMarker(maps[2], locations.westEnd, 'West End Musical', '#3498db');
+            addMarker(maps[2], parking.snowsfields, 'Snowsfields Parking', '#27ae60');
+            addMarker(maps[2], parking.qParkWestminster, 'Q-Park Westminster', '#27ae60');
+
+            // Day 3: Dec 27
+            maps[3] = L.map('map-3').setView([51.65, -0.35], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(maps[3]);
+
+            const day3Route = [locations.colindale, locations.snowCentre];
+            L.polyline(day3Route, {color: '#2ecc71', weight: 4}).addTo(maps[3]);
+
+            addMarker(maps[3], locations.colindale, 'Colindale (Base)', '#2c5f8d');
+            addMarker(maps[3], locations.snowCentre, 'Snow Centre', '#3498db');
+
+            // Day 4: Dec 28
+            maps[4] = L.map('map-4').setView([51.51, -0.17], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(maps[4]);
+
+            const day4Drive1 = [locations.colindale, locations.nottingHill];
+            const day4Drive2 = [locations.nottingHill, locations.hydePark];
+            const day4Walk = [locations.hydePark, locations.winterWonderland, locations.harrods];
+
+            L.polyline(day4Drive1, {color: '#e74c3c', weight: 3, dashArray: '10, 5'}).addTo(maps[4]);
+            L.polyline(day4Drive2, {color: '#e74c3c', weight: 3, dashArray: '10, 5'}).addTo(maps[4]);
+            L.polyline(day4Walk, {color: '#f39c12', weight: 3}).addTo(maps[4]);
+
+            addMarker(maps[4], locations.nottingHill, 'Notting Hill / Portobello', '#3498db');
+            addMarker(maps[4], locations.hydePark, 'Hyde Park', '#3498db');
+            addMarker(maps[4], locations.winterWonderland, 'Winter Wonderland', '#3498db');
+            addMarker(maps[4], locations.harrods, 'Harrods', '#3498db');
+            addMarker(maps[4], parking.qParkQueensway, 'Q-Park Queensway', '#27ae60');
+            addMarker(maps[4], parking.qParkParkLane, 'Q-Park Park Lane', '#27ae60');
+
+            // Day 5: Dec 29
+            maps[5] = L.map('map-5').setView([51.505, -0.10], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(maps[5]);
+
+            const day5Drive1 = [locations.colindale, locations.towerOfLondon];
+            const day5Walk = [locations.towerOfLondon, locations.towerBridge];
+            const day5Drive2 = [locations.towerBridge, locations.londonEye];
+
+            L.polyline(day5Drive1, {color: '#e74c3c', weight: 3, dashArray: '10, 5'}).addTo(maps[5]);
+            L.polyline(day5Walk, {color: '#3498db', weight: 3}).addTo(maps[5]);
+            L.polyline(day5Drive2, {color: '#e74c3c', weight: 3, dashArray: '10, 5'}).addTo(maps[5]);
+
+            addMarker(maps[5], locations.towerOfLondon, 'Tower of London', '#3498db');
+            addMarker(maps[5], locations.towerBridge, 'Tower Bridge', '#3498db');
+            addMarker(maps[5], locations.londonEye, 'London Eye', '#3498db');
+            addMarker(maps[5], parking.minories, 'Minories Parking', '#27ae60');
+            addMarker(maps[5], parking.qParkWestminster, 'Q-Park Westminster', '#27ae60');
+
+            // Day 6: Dec 30
+            maps[6] = L.map('map-6').setView([51.51, -0.13], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(maps[6]);
+
+            const day6Tube = [locations.colindale, [51.508, -0.125]]; // Charing Cross area
+            const day6Walk = [locations.buckinghamPalace, locations.trafalgarSquare, locations.nationalGallery, locations.britishMuseum];
+
+            L.polyline(day6Tube, {color: '#9b59b6', weight: 3, dashArray: '5, 10'}).addTo(maps[6]);
+            L.polyline(day6Walk, {color: '#3498db', weight: 3}).addTo(maps[6]);
+
+            addMarker(maps[6], locations.colindale, 'Colindale (Tube Start)', '#2c5f8d');
+            addMarker(maps[6], locations.buckinghamPalace, 'Buckingham Palace', '#3498db');
+            addMarker(maps[6], locations.nationalGallery, 'National Gallery', '#3498db');
+            addMarker(maps[6], locations.britishMuseum, 'British Museum', '#3498db');
+        }
+
+        function addMarker(map, coords, label, color) {
+            const marker = L.circleMarker(coords, {
+                radius: 8,
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                fillOpacity: 0.9
+            }).addTo(map);
+            marker.bindPopup(label);
+        }
+
+        function showDay(index) {
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+
+            // Update sections
+            document.querySelectorAll('.day-section').forEach((section, i) => {
+                section.classList.toggle('active', i === index);
+            });
+
+            // Invalidate map size (fix for hidden map containers)
+            setTimeout(() => {
+                if (maps[index]) {
+                    maps[index].invalidateSize();
+                }
+            }, 100);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initMaps);
+    </script>
+</body>
+</html>
