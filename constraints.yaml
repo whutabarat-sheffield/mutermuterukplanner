@@ -1,0 +1,463 @@
+# Trip Planner Constraints Schema
+# Version: 1.0
+# Last Updated: 2025-12-19
+
+meta:
+  trip_name: "London Christmas 2025"
+  start_date: "2025-12-24"
+  end_date: "2025-12-30"
+  timezone: "Europe/London"
+  base_location:
+    name: "Staybridge Suites Heathrow"
+    coordinates: [51.4819, -0.4474]
+    address: "276A Bath Rd, Sipson, West Drayton UB7 0DQ"
+
+# ============================================
+# GROUP COMPOSITION
+# ============================================
+group:
+  total_size: 7
+  composition:
+    adults: 5
+    youth:
+      count: 1
+      age: 14
+    infants:
+      count: 1
+      age: 1
+
+  special_needs:
+    - member: "infant"
+      constraints:
+        - type: "cannot_attend"
+          items: ["musicals", "age_restricted_venues"]
+        - type: "cannot_participate"
+          items: ["skiing", "physical_activities"]
+        - type: "requires"
+          items: ["one_parent_supervision"]
+
+# ============================================
+# DRIVER CONSTRAINTS
+# ============================================
+driver:
+  name: "Windo"
+  daily_limit_hours: 8
+  overtime_threshold_hours: 8
+  day_off: "2025-12-30"
+  home_base: "Sheffield"
+
+# ============================================
+# TEMPORAL CONSTRAINTS
+# ============================================
+temporal:
+  opening_hours:
+    borough_market:
+      location_id: 7
+      days: ["Wed", "Thu", "Fri", "Sat"]
+      opens: "10:00"
+      closes: "17:00"
+      closed_days: ["Sun", "Mon", "Tue"]
+
+    tower_of_london:
+      location_id: 5
+      default:
+        opens: "09:00"
+        closes: "17:30"
+      last_admission: "16:30"
+
+    harrods:
+      location_id: 19
+      weekday:
+        opens: "10:00"
+        closes: "21:00"
+      saturday:
+        opens: "10:00"
+        closes: "21:00"
+      sunday:
+        opens: "11:30"
+        closes: "18:00"
+
+    portobello_road:
+      location_id: 21
+      saturday:
+        opens: "09:00"
+        closes: "17:00"
+        market_type: "full_antiques"
+      weekday:
+        opens: "09:00"
+        closes: "18:00"
+        market_type: "shops_only"
+      sunday: "CLOSED"
+
+    westminster_abbey:
+      location_id: 14
+      default:
+        opens: "09:30"
+        closes: "15:30"
+      saturday:
+        opens: "09:00"
+        closes: "15:00"
+
+    winter_wonderland:
+      location_id: 20
+      default:
+        opens: "10:00"
+        closes: "22:00"
+
+    london_eye:
+      location_id: 15
+      default:
+        opens: "10:00"
+        closes: "20:30"
+
+    national_gallery:
+      location_id: 9
+      default:
+        opens: "10:00"
+        closes: "18:00"
+      friday:
+        opens: "10:00"
+        closes: "21:00"
+
+    british_museum:
+      location_id: 2
+      default:
+        opens: "10:00"
+        closes: "17:00"
+      friday:
+        opens: "10:00"
+        closes: "20:30"
+
+  closures:
+    christmas_day:
+      date: "2025-12-25"
+      closed:
+        - "Tower of London"
+        - "Borough Market"
+        - "Westminster Abbey"
+        - "National Gallery"
+        - "British Museum"
+        - "Harrods"
+        - "most retail"
+      open:
+        - "Chinatown restaurants"
+        - "Some hotels"
+      transport: "No public transport"
+      parking: "Free street parking"
+
+    boxing_day:
+      date: "2025-12-26"
+      closed:
+        - "National Gallery"
+        - "Tower of London"
+      open:
+        - "Borough Market"
+        - "Westminster Abbey"
+        - "Harrods"
+        - "most attractions"
+
+  events:
+    changing_of_guard:
+      location: "Buckingham Palace"
+      schedule:
+        "2025-12-29": false  # Cancelled
+        "2025-12-30": true   # Confirmed
+      time: "11:00"
+      duration_minutes: 45
+      arrive_early_minutes: 45
+
+  seasonal:
+    sunset_time: "15:55"
+    sunrise_time: "08:05"
+    school_holidays: true
+    expected_crowds: "high"
+    daylight_hours: 8
+
+# ============================================
+# SPATIAL CONSTRAINTS
+# ============================================
+spatial:
+  clustering:
+    max_walking_radius_km: 1.5
+    preferred_walking_radius_km: 1.0
+    max_parking_moves_per_day: 2
+    preferred_parking_moves_per_day: 1
+
+  clusters:
+    east_london_tower:
+      locations: ["Tower of London", "Tower Bridge"]
+      parking: "Minories"
+      constraint: "Must visit together - only 300m apart"
+      walking_distance_m: 300
+
+    east_london_market:
+      locations: ["Borough Market"]
+      parking: "Snowsfields"
+      constraint: "Separate from Tower cluster due to Sunday closure"
+
+    west_london:
+      locations:
+        - "Notting Hill"
+        - "Portobello Road"
+        - "Hyde Park"
+        - "Winter Wonderland"
+        - "Harrods"
+      parking:
+        - "Q-Park Queensway"
+        - "Q-Park Park Lane"
+      max_parking_moves: 2
+
+    central_south:
+      locations:
+        - "Westminster Abbey"
+        - "London Eye"
+        - "South Bank"
+        - "Westminster Bridge"
+      parking: "Q-Park Westminster"
+      walkable: true
+
+    west_end:
+      locations:
+        - "Covent Garden"
+        - "Soho"
+        - "West End theatres"
+        - "Chinatown"
+        - "Trafalgar Square"
+        - "National Gallery"
+      parking: "NCP Wardour Street"
+      walkable: true
+      walking_radius_m: 800
+
+    bloomsbury:
+      locations: ["British Museum"]
+      transport: "tube"
+      constraint: "Best accessed by tube on driver day off"
+
+    outside_london:
+      locations: ["Snow Centre"]
+      parking: "Free on-site"
+      route: "M25 from Heathrow"
+
+# ============================================
+# BOOKING CONSTRAINTS
+# ============================================
+booking:
+  required:
+    - name: "West End Musical"
+      location_id: 11
+      date: "2025-12-26"
+      time: "19:30"
+      tickets: 5
+      priority: "CRITICAL"
+      deadline: "ASAP"
+      url: "https://officiallondontheatre.com/"
+      notes: "5 tickets only - infant cannot attend"
+      cost_gbp: 250
+
+    - name: "Winter Wonderland Entry"
+      location_id: 20
+      date: "2025-12-28"
+      time: "14:00"
+      tickets: 7
+      priority: "CRITICAL"
+      url: "https://hydeparkwinterwonderland.com/"
+      cost_gbp: 145
+      notes: "Book entry + ride tokens"
+
+    - name: "Snow Centre Ski Lessons"
+      location_id: 13
+      date: "2025-12-27"
+      time: "11:00"
+      tickets: 5
+      priority: "HIGH"
+      url: "https://www.thesnowcentre.com/"
+      notes: "5 tickets only - infant cannot ski"
+      cost_gbp: 295
+
+    - name: "Tower of London"
+      location_id: 5
+      date: "2025-12-29"
+      time: "09:30"
+      tickets: 7
+      priority: "HIGH"
+      url: "https://www.hrp.org.uk/tower-of-london/"
+      cost_gbp: 192
+
+    - name: "London Eye"
+      location_id: 15
+      date: "2025-12-29"
+      time: "16:30"
+      tickets: 7
+      priority: "HIGH"
+      url: "https://www.londoneye.com/"
+      notes: "Book sunset slot for city lights"
+      cost_gbp: 210
+
+    - name: "Westminster Abbey"
+      location_id: 14
+      date: "2025-12-26"
+      time: "13:00"
+      tickets: 7
+      priority: "MEDIUM"
+      url: "https://www.westminster-abbey.org/"
+      cost_gbp: 169
+
+  recommended:
+    - name: "Lunch restaurant near Hyde Park"
+      date: "2025-12-28"
+      time: "13:00"
+      party_size: 7
+      platform: "OpenTable"
+      priority: "LOW"
+
+# ============================================
+# DRIVING CONSTRAINTS
+# ============================================
+driving:
+  congestion_charge:
+    daily_rate_gbp: 15
+    zone: "Central London"
+    operating_hours:
+      weekday: "07:00-18:00"
+      weekend: "12:00-18:00"
+    christmas_suspension:
+      start: "2025-12-25"
+      end: "2026-01-01"
+    applies_on_trip: ["2025-12-24"]
+
+  ulez:
+    vehicle_compliant: true
+    daily_rate_gbp: 12.50
+    applies: false
+    note: "Vehicle confirmed ULEZ compliant"
+
+  drive_time_estimates:
+    from_base:
+      heathrow_terminals:
+        distance_miles: 1.3
+        time_minutes: 5
+        note: "Adjacent to hotel"
+      tower_of_london:
+        distance_miles: 19
+        time_minutes_range: [45, 55]
+        note: "Longest drive of trip"
+      notting_hill:
+        distance_miles: 14
+        time_minutes_range: [40, 55]
+      borough_market:
+        distance_miles: 18
+        time_minutes_range: [50, 65]
+      snow_centre:
+        distance_miles: 20
+        time_minutes_range: [45, 60]
+        route: "M25"
+      south_bank:
+        distance_miles: 17
+        time_minutes_range: [35, 50]
+
+# ============================================
+# WEATHER CONTINGENCY
+# ============================================
+weather:
+  api: "weatherapi.com"
+  location: "London"
+  check_frequency: "daily"
+
+  thresholds:
+    rain_probability_percent: 40
+    temperature_celsius_min: 4
+    wind_speed_mph_max: 20
+
+  outdoor_activities:
+    - name: "Portobello Road"
+      day: "2025-12-28"
+      exposure: "high"
+    - name: "Hyde Park walk"
+      day: "2025-12-28"
+      exposure: "high"
+    - name: "South Bank"
+      day: "2025-12-25"
+      exposure: "medium"
+    - name: "Tower Bridge photos"
+      day: "2025-12-29"
+      exposure: "low"
+    - name: "Covent Garden"
+      day: "2025-12-24"
+      exposure: "medium"
+    - name: "Winter Lights walk"
+      day: "2025-12-24"
+      exposure: "medium"
+
+  indoor_alternatives:
+    high_priority:
+      - "Harrods"
+      - "British Museum"
+      - "National Gallery"
+    medium_priority:
+      - "Shopping centres"
+      - "Cafes/restaurants"
+      - "West End show (if available)"
+    low_priority:
+      - "Hotel rest"
+      - "Local mall"
+
+  swap_rules:
+    - if_bad_weather_on: "2025-12-28"
+      outdoor: ["Portobello Road", "Hyde Park"]
+      consider_swap_with: "2025-12-27"
+      reason: "Dec 27 is indoor skiing, weather-proof"
+
+# ============================================
+# VALIDATION THRESHOLDS
+# ============================================
+validation:
+  route:
+    time_difference_minutes: 10
+    time_difference_percent: 20
+    distance_difference_miles: 2
+
+  timing:
+    minimum_buffer_minutes: 15
+    warn_if_buffer_below_minutes: 10
+    arrival_before_opening_max_minutes: 30
+
+  clustering:
+    max_deviation_km: 0.5
+
+  severity_levels:
+    critical:
+      - "closures"
+      - "age_restrictions"
+      - "required_bookings"
+    warning:
+      - "tight_timing"
+      - "booking_deadline"
+      - "clustering_deviation"
+    info:
+      - "optimization_opportunity"
+      - "alternative_available"
+
+# ============================================
+# AGENT CONFIGURATION
+# ============================================
+agents:
+  constraint_checker:
+    enabled: true
+    create_github_issues: true
+    issue_labels: ["constraint-violation", "automated"]
+    report_directory: "reports"
+
+  weather_contingency:
+    enabled: true
+    check_time: "08:00"
+    days_ahead: 7
+
+  route_validator:
+    enabled: true
+    api: "openrouteservice"
+    validate_on_change: true
+
+  map_generator:
+    enabled: true
+    output_file: "daily-planner.html"
+    require_approval: true
