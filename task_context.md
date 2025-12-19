@@ -2,6 +2,26 @@
 
 ## Changelog
 
+### 2025-12-19: Accommodation Location Update
+**Agent**: Claude Code (Opus 4.5)
+**Change**: Base location updated from Colindale NW9 to Staybridge Suites Heathrow
+
+**New Accommodation**:
+- **Hotel**: Staybridge Suites London - Heathrow Bath Road by IHG
+- **Address**: 276A Bath Rd, Sipson, West Drayton UB7 0DQ
+- **Coordinates**: (51.4819, -0.4474)
+- **Distance to Heathrow terminals**: 1.3 miles (~5 min)
+
+**Impact on Trip**:
+- **Dec 24 (Arrival)**: MAJOR IMPROVEMENT - Hotel is at Heathrow, no 45-min drive after long flight
+- **All other days**: Longer drives to central/east London (adds ~10-15 min vs Colindale)
+- **Dec 28 (West London)**: Slightly closer to Notting Hill/Hyde Park area
+- **Dec 29 (Tower of London)**: Longest drive now 19 miles vs 12 miles from Colindale
+
+**Route optimization still valid** - geographic clustering unchanged, just different starting point.
+
+---
+
 ### 2025-12-18: Route Optimization & Corrections
 **Agent**: Claude Code (Opus 4.5)
 **Reviewed by**: User confirmed approach
@@ -25,13 +45,18 @@
 
 **TODO for future agents**:
 - [x] Validate drive times with Google Maps API for specific dates/times ✓ (completed 2025-12-18)
+- [x] Update accommodation to actual hotel location ✓ (completed 2025-12-19)
 - [ ] Book attractions in priority order (see Booking Priorities section)
 
 ---
 
 ## Overview
 
-Planning a 7-day London trip (24-30 December 2025) for a group arriving from Bali. Driver (Windo) based in Sheffield, staying in Colindale area during the trip.
+Planning a 7-day London trip (24-30 December 2025) for a group arriving from Bali. Driver (Windo) based in Sheffield, staying near Heathrow during the trip.
+
+**Accommodation**: Staybridge Suites London - Heathrow Bath Road by IHG
+**Address**: 276A Bath Rd, Sipson, West Drayton UB7 0DQ
+**Key benefit**: 1.3 miles from Heathrow terminals - ideal for arrival day
 
 ---
 
@@ -55,76 +80,85 @@ Total: 7 people
 
 ```yaml
 base_location: Sheffield
-accommodation_during_trip: Colindale, London NW9
+accommodation_during_trip: Staybridge Suites Heathrow, 276A Bath Rd, Sipson UB7 0DQ
+accommodation_coords: (51.4819, -0.4474)
+distance_to_heathrow: 1.3 miles (~5 min)
 daily_hour_limit: 8 hours (before overtime)
 driving_days: [24, 25, 26, 27, 28, 29]  # December 2025
 day_off: 30  # December 2025
 ```
 
-### Drive Times from Colindale (minutes)
+### Drive Times from Staybridge Suites Heathrow (minutes)
 
-**VALIDATED 2025-12-18** via Rome2Rio, ViaMichelin, and taxi service estimates.
-Traffic buffers added based on day/time of travel.
+**UPDATED 2025-12-19** - New base location near Heathrow Airport.
+Sources: Rome2Rio, transfer services, taxi estimates.
 
 ```python
-drive_times_validated = {
-    "heathrow": {
-        "distance_miles": 17,
-        "base_time_min": 31,
-        "with_traffic": "35-50",
-        "dec_24_0530": "35-40",  # Early morning, light traffic
-        "source": "rome2rio.com, skybridgecars.com"
+drive_times_from_heathrow_hotel = {
+    "heathrow_terminals": {
+        "distance_miles": 1.3,
+        "base_time_min": 5,
+        "with_traffic": "5-10",
+        "note": "Hotel is adjacent to airport - major benefit for arrival day",
+        "source": "ihg.com, rome2rio.com"
     },
-    "tower_of_london": {
-        "distance_miles": 12,
-        "base_time_min": 25,
+    "notting_hill_portobello": {
+        "distance_miles": 14,
+        "base_time_min": 28,
         "with_traffic": "35-50",
-        "dec_29_sun_0830": "30-40",  # Sunday morning, moderate
+        "dec_28_sat_0930": "40-55",  # Saturday morning, busy
         "source": "rome2rio.com"
     },
-    "notting_hill": {
-        "distance_miles": 8,
-        "base_time_min": 16,
-        "with_traffic": "25-40",
-        "dec_28_sat_0930": "30-45",  # Saturday morning, busy
+    "hyde_park_winter_wonderland": {
+        "distance_miles": 13,
+        "base_time_min": 25,
+        "with_traffic": "30-45",
+        "source": "estimated"
+    },
+    "westminster_london_eye": {
+        "distance_miles": 17,
+        "base_time_min": 35,
+        "with_traffic": "40-60",
+        "source": "rome2rio.com"
+    },
+    "borough_market": {
+        "distance_miles": 18,
+        "base_time_min": 39,
+        "with_traffic": "45-65",
+        "dec_26_thu_0930": "50-65",  # Boxing Day, cross-city
+        "source": "rome2rio.com"
+    },
+    "tower_of_london": {
+        "distance_miles": 19,
+        "base_time_min": 43,
+        "with_traffic": "50-70",
+        "dec_29_sun_0830": "45-55",  # Sunday morning, lighter traffic
         "source": "rome2rio.com"
     },
     "snow_centre_hemel_hempstead": {
-        "distance_miles": 17,
-        "base_time_min": 21,
-        "with_traffic": "25-35",
-        "dec_27_fri_0900": "25-30",  # M1 route, relatively quick
+        "distance_miles": 20,
+        "base_time_min": 42,
+        "with_traffic": "45-60",
+        "route": "via M25 (not M1 like from Colindale)",
         "parking": "FREE on-site",
-        "source": "skiresort.info, thesnowcentre.com"
+        "source": "uber.com, skiresort.info"
     },
-    "hyde_park_park_lane": {
-        "distance_miles": 7,
-        "base_time_min": 18,
-        "with_traffic": "25-40",
-        "source": "estimated from notting_hill + 2 miles"
-    },
-    "westminster_q_park": {
-        "distance_miles": 9,
-        "base_time_min": 22,
-        "with_traffic": "30-50",
+    "south_bank_chinatown": {
+        "distance_miles": 16,
+        "base_time_min": 33,
+        "with_traffic": "40-55",
+        "dec_25_christmas": "30-40",  # Empty roads on Christmas Day
         "source": "estimated"
-    },
-    "borough_market": {
-        "distance_miles": 11,
-        "base_time_min": 24,
-        "with_traffic": "35-50",
-        "dec_26_thu_0930": "35-45",  # Boxing Day, moderate
-        "source": "estimated from tower distance"
     }
 }
 
-# Intra-London transfers (critical for day planning)
+# Intra-London transfers (unchanged - these don't depend on starting point)
 intra_london_transfers = {
     "tower_to_westminster": {
         "distance_miles": 3.5,
         "base_time_min": 15,
         "with_traffic": "20-40",
-        "dec_29_sun_1500": "25-35",  # Sunday afternoon
+        "dec_29_sun_1500": "25-35",
         "note": "Consider river boat as alternative (40-50 min but scenic)",
         "source": "meetways.com"
     },
@@ -132,7 +166,7 @@ intra_london_transfers = {
         "distance_miles": 1.5,
         "base_time_min": 8,
         "with_traffic": "15-30",
-        "dec_28_winter_wonderland": "20-35",  # Heavy event traffic
+        "dec_28_winter_wonderland": "20-35",
         "note": "Winter Wonderland causes severe congestion around Hyde Park",
         "source": "hydeparkwinterwonderland.com"
     },
@@ -142,6 +176,16 @@ intra_london_transfers = {
         "with_traffic": "15-30",
         "source": "estimated"
     }
+}
+
+# Comparison: Heathrow hotel vs Colindale (old location)
+location_comparison = {
+    "heathrow_terminals": {"heathrow_hotel": 1.3, "colindale": 17, "difference": "-15.7 miles"},
+    "tower_of_london": {"heathrow_hotel": 19, "colindale": 12, "difference": "+7 miles"},
+    "notting_hill": {"heathrow_hotel": 14, "colindale": 8, "difference": "+6 miles"},
+    "borough_market": {"heathrow_hotel": 18, "colindale": 11, "difference": "+7 miles"},
+    "snow_centre": {"heathrow_hotel": 20, "colindale": 17, "difference": "+3 miles"},
+    "verdict": "Dec 24 arrival much easier. Other days add 10-20 min drive time."
 }
 ```
 
@@ -518,132 +562,142 @@ itinerary = {
     "24_dec": {
         "day_name": "Tuesday",
         "theme": "Arrival Day",
-        "depart_colindale": "05:30",
-        "return_colindale": "18:00",
-        "total_hours": 7,
+        "depart_hotel": "07:30",  # UPDATED: Later start - hotel is at Heathrow!
+        "return_hotel": "18:00",
+        "total_hours": 5.5,  # REDUCED: No long airport transfer
         "overtime_hours": 0,
         "congestion_charge": 15.00,
-        "ulez": 12.50,  # If non-compliant
-        "parking_cost": (30, 40),  # Range
+        "ulez": 0,  # Vehicle is ULEZ compliant
+        "parking_cost": (15, 25),  # REDUCED: No Heathrow parking needed
+        "hotel": "Staybridge Suites Heathrow, 276A Bath Rd, Sipson UB7 0DQ",
         "stops": [
-            {"time": "05:30-09:30", "location": "Heathrow Airport", "activity": "Pickup", "parking": "Short Stay", "parking_cost": (15, 20)},
-            {"time": "09:30-13:00", "location": "Colindale", "activity": "Check-in & REST", "note": "Critical jet lag recovery"},
-            {"time": "13:45-15:00", "location": "Oxford Street / Primark", "activity": "Shopping", "parking": "NCP Cavendish Square", "parking_cost": (15, 20)},
-            {"time": "15:30-17:00", "location": "Covent Garden", "activity": "Explore", "parking": "Walk from Oxford St"},
-            {"time": "17:00-18:00", "location": "Winter Lights", "activity": "Walk", "parking": "Same"}
+            {"time": "07:30-08:00", "location": "Heathrow Airport", "activity": "Pickup (1.3 miles from hotel)", "parking": "Short Stay or pickup zone", "parking_cost": (5, 10)},
+            {"time": "08:00-12:00", "location": "Hotel", "activity": "Check-in & REST", "note": "Critical jet lag recovery - guests can sleep immediately after landing"},
+            {"time": "12:30-14:00", "location": "Oxford Street / Primark", "activity": "Shopping - buy warm clothes", "parking": "NCP Cavendish Square", "parking_cost": (10, 15)},
+            {"time": "14:30-16:00", "location": "Covent Garden", "activity": "Explore Christmas market", "parking": "Walk from Oxford St"},
+            {"time": "16:00-17:30", "location": "Winter Lights", "activity": "Evening lights walk", "parking": "Same"}
         ],
+        "route_note": "IMPROVED: Hotel at Heathrow eliminates 45-min post-flight drive. Guests can rest immediately.",
         "backup": "If flight delayed >3 hrs, cancel afternoon"
     },
     "25_dec": {
         "day_name": "Wednesday",
         "theme": "Christmas Day - Relaxed",
-        "depart_colindale": "10:30",
-        "return_colindale": "17:00",
-        "total_hours": 6.5,
+        "depart_hotel": "10:00",
+        "return_hotel": "17:00",
+        "total_hours": 7,
         "overtime_hours": 0,
         "congestion_charge": 0,  # Christmas suspension
-        "ulez": 0,  # Christmas Day exempt
+        "ulez": 0,  # Vehicle is ULEZ compliant
         "parking_cost": 0,  # Free street parking
+        "drive_to_central": "30-40 min (empty Christmas roads)",
         "stops": [
-            {"time": "11:15-12:30", "location": "South Bank", "activity": "Walk along Thames"},
-            {"time": "12:30-13:30", "location": "Westminster Bridge / Big Ben", "activity": "Photos"},
-            {"time": "13:30-15:00", "location": "Chinatown", "activity": "Lunch"},
-            {"time": "15:00-16:30", "location": "Central London", "activity": "Quiet walk"}
+            {"time": "10:45-12:00", "location": "South Bank", "activity": "Walk along Thames"},
+            {"time": "12:00-13:00", "location": "Westminster Bridge / Big Ben", "activity": "Photos"},
+            {"time": "13:00-14:30", "location": "Chinatown", "activity": "Lunch"},
+            {"time": "14:30-16:00", "location": "Central London", "activity": "Quiet walk, enjoy empty streets"}
         ],
-        "note": "Most attractions closed. No public transport."
+        "note": "Most attractions closed. No public transport. Roads quiet - good day for central London driving."
     },
     "26_dec": {
         "day_name": "Thursday",
         "theme": "Boxing Day - East London + West End",
-        "depart_colindale": "09:30",
-        "return_colindale": "23:30",
+        "depart_hotel": "09:00",  # Earlier start due to longer drive
+        "return_hotel": "23:30",
         "total_hours": 8,  # If driver goes home during show
         "overtime_hours": 0,  # Or 3 if stays
         "congestion_charge": 0,  # Christmas suspension
         "ulez": 0,  # Vehicle is ULEZ compliant
-        "parking_cost": (25, 40),  # Reduced: only 2 parking zones now
+        "parking_cost": (25, 40),
+        "drive_to_borough": "50-65 min (18 miles cross-city)",
         "stops": [
-            {"time": "10:15-12:00", "location": "Borough Market", "activity": "Brunch", "parking": "Snowsfields", "parking_cost": (10, 15)},
-            {"time": "13:00-15:30", "location": "Westminster Abbey", "activity": "Visit", "parking": "Q-Park Westminster", "parking_cost": (15, 25)},
-            {"time": "15:30-18:30", "location": "Soho", "activity": "Explore, early dinner", "parking": "Walk from Westminster or NCP Wardour St"},
+            {"time": "10:00-12:00", "location": "Borough Market", "activity": "Brunch", "parking": "Snowsfields", "parking_cost": (10, 15)},
+            {"time": "12:30-15:00", "location": "Westminster Abbey", "activity": "Visit", "parking": "Q-Park Westminster", "parking_cost": (15, 25)},
+            {"time": "15:00-18:30", "location": "Soho", "activity": "Explore, early dinner", "parking": "Walk from Westminster"},
             {"time": "19:30-22:30", "location": "West End Musical", "activity": "Show (5 people)", "parking": "Walk from Soho"}
         ],
-        "parking_moves": 2,  # IMPROVED: was 3-4
+        "parking_moves": 2,
         "infant_care": {
             "during_musical": "Driver + 1 parent with infant",
-            "plan": "Return to Colindale or explore quiet area near theatre",
+            "plan": "Return to hotel near Heathrow (40-50 min drive) or explore quiet area",
             "note": "See infant_care_plan section for details"
         },
-        "driver_option": "Return home 19:30, collect group 22:30 (saves OT + parking)",
-        "route_note": "CHANGED: Removed Tower Bridge (moved to Dec 29 to cluster with Tower of London)"
+        "driver_option": "Return to hotel 19:30, collect group 22:30 (saves OT + parking)",
+        "route_note": "Long initial drive from Heathrow area to Borough Market. Once in London, stays central."
     },
     "27_dec": {
         "day_name": "Friday",
         "theme": "Skiing Day",
-        "depart_colindale": "09:00",
-        "return_colindale": "18:00",
-        "total_hours": 9,
-        "overtime_hours": 1,
+        "depart_hotel": "09:00",
+        "return_hotel": "17:00",
+        "total_hours": 8,
+        "overtime_hours": 0,
         "congestion_charge": 0,  # Outside London
         "ulez": 0,  # Outside London
         "parking_cost": 0,  # Free at Snow Centre
+        "drive_to_snow_centre": "45-60 min via M25 (20 miles)",
         "stops": [
             {"time": "10:00", "location": "Snow Centre", "activity": "Arrive", "parking": "On-site FREE"},
             {"time": "11:00-13:00", "location": "Snow Centre", "activity": "2hr beginner lessons (5 people)"},
             {"time": "13:00-14:00", "location": "Snow Centre", "activity": "Lunch at café"},
-            {"time": "15:30", "location": "Colindale", "activity": "Return"}
+            {"time": "14:30", "location": "Depart Snow Centre"},
+            {"time": "15:30", "location": "Hotel", "activity": "Return"}
         ],
         "infant_arrangement": "Driver + 1 parent with infant at café",
-        "backup": "Marlowes Shopping Centre (10 min drive)"
+        "backup": "Marlowes Shopping Centre (10 min drive)",
+        "route_note": "Via M25 from Heathrow area (different route than M1 from Colindale)"
     },
     "28_dec": {
         "day_name": "Saturday",
         "theme": "West London Day",
-        "depart_colindale": "09:30",
-        "return_colindale": "20:00",
-        "total_hours": 10.5,
-        "overtime_hours": 2.5,
+        "depart_hotel": "09:00",
+        "return_hotel": "20:00",
+        "total_hours": 11,
+        "overtime_hours": 3,
         "congestion_charge": 0,  # Christmas suspension
         "ulez": 0,  # Vehicle is ULEZ compliant
         "parking_cost": (32, 48),
+        "drive_to_notting_hill": "40-55 min (14 miles)",
         "stops": [
             {"time": "10:00-13:00", "location": "Notting Hill + Portobello Road", "activity": "Market (Saturday - best day)", "parking": "Q-Park Queensway", "parking_cost": (15, 20)},
             {"time": "13:30-14:00", "location": "Hyde Park", "activity": "Walk to Winter Wonderland", "parking": "Q-Park Park Lane", "parking_cost": (17, 28)},
             {"time": "14:00-17:00", "location": "Winter Wonderland", "activity": "Rides, food, explore", "parking": "Same (walk)"},
             {"time": "17:30-19:30", "location": "Harrods", "activity": "Browse (better hours on Saturday)", "parking": "Walk from Park Lane"}
         ],
-        "parking_moves": 2,  # IMPROVED: was 3 with cross-London zigzag
-        "route_note": "CHANGED: Pure west London cluster. Eliminated east→west→south zigzag. Tower of London moved to Dec 29."
+        "parking_moves": 2,
+        "route_note": "West London is relatively close to Heathrow. All locations cluster well together."
     },
     "29_dec": {
         "day_name": "Sunday",
         "theme": "East + South London - Final Driving Day",
-        "depart_colindale": "08:30",
-        "return_colindale": "18:30",
-        "total_hours": 10,
-        "overtime_hours": 2,
+        "depart_hotel": "08:00",  # Earlier start - longest drive of the trip
+        "return_hotel": "19:00",
+        "total_hours": 11,
+        "overtime_hours": 3,
         "congestion_charge": 0,  # Christmas suspension
         "ulez": 0,  # Vehicle is ULEZ compliant
         "parking_cost": (25, 40),
+        "drive_to_tower": "45-55 min (19 miles - longest drive)",
         "stops": [
             {"time": "09:30-12:30", "location": "Tower of London", "activity": "Visit (3 hrs)", "parking": "Minories", "parking_cost": (15, 20)},
             {"time": "12:30-13:00", "location": "Tower Bridge", "activity": "Photos (5 min walk from Tower)", "parking": "Walk"},
             {"time": "13:00-14:30", "location": "Near Tower Bridge", "activity": "Lunch", "parking": "Walk", "note": "Borough Market closed Sundays - use nearby restaurants"},
-            {"time": "15:00-16:00", "location": "Drive to Westminster", "activity": "Transit"},
-            {"time": "16:30-17:30", "location": "London Eye", "activity": "Ride at dusk/sunset", "parking": "Q-Park Westminster", "parking_cost": (10, 20)}
+            {"time": "15:00-15:30", "location": "Drive to Westminster", "activity": "Transit (25-35 min)"},
+            {"time": "16:00-17:00", "location": "London Eye", "activity": "Ride at dusk/sunset", "parking": "Q-Park Westminster", "parking_cost": (10, 20)}
         ],
         "parking_moves": 2,
-        "route_note": "CHANGED: Linear east→south route. Tower of London + Tower Bridge now clustered (300m apart). London Eye at sunset (~15:55).",
+        "route_note": "Longest initial drive from Heathrow to east London. Linear east→south route once there.",
         "note": "END OF DRIVING DUTIES"
     },
     "30_dec": {
         "day_name": "Monday",
         "theme": "Guests Independent - Driver Day Off",
         "driver_status": "day_off",
-        "transport": "Northern line tube from Colindale",
+        "transport": "Piccadilly line from Heathrow or Elizabeth line",
         "tube_cost_per_person": 8.10,  # Daily cap
         "tube_cost_total": 50,  # 6 people
         "stops": [
+            {"time": "09:30", "location": "Depart hotel for Heathrow tube station"},
             {"time": "10:15", "location": "Buckingham Palace", "activity": "Arrive for viewing spot"},
             {"time": "11:00-11:45", "location": "Buckingham Palace", "activity": "Changing of Guard"},
             {"time": "12:00-14:00", "location": "National Gallery", "activity": "Visit (FREE)"},
@@ -651,13 +705,15 @@ itinerary = {
             {"time": "Optional", "location": "Shoreditch", "activity": "If energy permits"}
         ],
         "tube_route": [
-            "Colindale → Charing Cross (Northern line)",
-            "Walk to Buckingham Palace (10 min)",
-            "Walk to National Gallery (15 min)",
+            "Hotel → Heathrow Terminal 2/3 station (bus or walk)",
+            "Heathrow → Green Park (Piccadilly line, ~45 min)",
+            "Walk to Buckingham Palace (5 min)",
+            "Walk to National Gallery (15 min via The Mall)",
             "Walk or tube to British Museum",
-            "Tottenham Court Road → Colindale (Northern line)"
+            "Holborn → Heathrow (Piccadilly line, ~50 min)"
         ],
-        "all_stations_step_free": True
+        "alternative_route": "Elizabeth line from Heathrow to Paddington, then tube to Green Park",
+        "note": "Heathrow stations are step-free. Journey is longer than from Colindale but straightforward."
     }
 }
 ```
@@ -780,16 +836,16 @@ costs = {
 overtime = {
     "daily_limit_hours": 8,
     "days": {
-        "24_dec": {"total": 7, "overtime": 0},
-        "25_dec": {"total": 6.5, "overtime": 0},
+        "24_dec": {"total": 5.5, "overtime": 0, "note": "REDUCED - hotel at Heathrow!"},
+        "25_dec": {"total": 7, "overtime": 0},
         "26_dec": {"total": 8, "overtime": 0, "note": "If driver goes home during show; else 3 hrs OT"},
-        "27_dec": {"total": 9, "overtime": 1},
-        "28_dec": {"total": 10.5, "overtime": 2.5},
-        "29_dec": {"total": 10, "overtime": 2},  # UPDATED: was 9 hrs, now 10 hrs (08:30-18:30)
+        "27_dec": {"total": 8, "overtime": 0, "note": "Reduced vs Colindale - shorter M25 return"},
+        "28_dec": {"total": 11, "overtime": 3},
+        "29_dec": {"total": 11, "overtime": 3, "note": "Longest day - 19 miles to Tower of London"},
         "30_dec": {"total": 0, "overtime": 0, "driver_day_off": True}
     },
-    "total_best_case": 5.5,  # UPDATED
-    "total_worst_case": 8.5   # UPDATED
+    "total_best_case": 6,   # UPDATED for Heathrow location
+    "total_worst_case": 9   # If driver stays during musical on Dec 26
 }
 ```
 
@@ -885,9 +941,9 @@ infant_care = {
         "infant_age": "1 year",
         "options": [
             {
-                "option": "Return to Colindale",
+                "option": "Return to Heathrow hotel",
                 "pros": ["Infant can sleep in familiar environment", "No parking cost"],
-                "cons": ["45 min drive each way", "Driver must return at 22:30 for pickup"],
+                "cons": ["40-50 min drive each way", "Driver must return at 22:30 for pickup"],
                 "recommended": True
             },
             {
@@ -898,7 +954,7 @@ infant_care = {
                 "recommended": False
             }
         ],
-        "decision": "Recommend Option 1: Return to Colindale. Driver drops group at theatre 19:15, drives home with parent + infant, returns for 22:30 pickup. Saves parking + gives infant proper rest."
+        "decision": "Recommend Option 1: Return to Heathrow hotel. Driver drops group at theatre 19:15, drives back to Heathrow with parent + infant, returns for 22:30 pickup. Saves parking + gives infant proper rest."
     },
     "27_dec_skiing": {
         "time": "11:00-13:00 (lesson) + 13:00-14:00 (lunch)",
