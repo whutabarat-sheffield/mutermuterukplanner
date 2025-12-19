@@ -197,10 +197,12 @@ class TripOptimizer {
         return dailyPlans;
     }
 
-    // Order locations within a zone to minimize walking distance (nearest neighbor)
+    // Order locations within a zone to minimize walking distance
+    // Uses nearest-neighbor heuristic followed by 2-opt improvement
     orderLocationsInZone(locations) {
         if (locations.length <= 1) return locations;
 
+        // Step 1: Build initial route using nearest-neighbor
         const ordered = [locations[0]];
         const remaining = [...locations.slice(1)];
 
@@ -227,7 +229,74 @@ class TripOptimizer {
             remaining.splice(nearest, 1);
         }
 
-        return ordered;
+        // Step 2: Improve with 2-opt
+        return this.improveRouteWith2Opt(ordered);
+    }
+
+    // Calculate total distance of a route
+    calculateTotalRouteDistance(locations) {
+        let total = 0;
+        for (let i = 0; i < locations.length - 1; i++) {
+            total += calculateDistance(
+                locations[i].lat, locations[i].lng,
+                locations[i + 1].lat, locations[i + 1].lng
+            );
+        }
+        return total;
+    }
+
+    // 2-opt improvement: iteratively swap edges to reduce total distance
+    improveRouteWith2Opt(locations) {
+        if (locations.length <= 3) return locations;
+
+        let route = [...locations];
+        let improved = true;
+
+        while (improved) {
+            improved = false;
+
+            for (let i = 0; i < route.length - 2; i++) {
+                for (let j = i + 2; j < route.length; j++) {
+                    // Calculate current distance of edges (i, i+1) and (j, j+1 or end)
+                    const d1 = calculateDistance(
+                        route[i].lat, route[i].lng,
+                        route[i + 1].lat, route[i + 1].lng
+                    );
+                    const d2 = j + 1 < route.length
+                        ? calculateDistance(
+                            route[j].lat, route[j].lng,
+                            route[j + 1].lat, route[j + 1].lng
+                        )
+                        : 0;
+
+                    // Calculate distance if we swap: connect i to j, then i+1 to j+1
+                    const d3 = calculateDistance(
+                        route[i].lat, route[i].lng,
+                        route[j].lat, route[j].lng
+                    );
+                    const d4 = j + 1 < route.length
+                        ? calculateDistance(
+                            route[i + 1].lat, route[i + 1].lng,
+                            route[j + 1].lat, route[j + 1].lng
+                        )
+                        : 0;
+
+                    // If swapping reduces distance, reverse the segment between i+1 and j
+                    if (d3 + d4 < d1 + d2) {
+                        // Reverse segment from i+1 to j (inclusive)
+                        const reversed = route.slice(i + 1, j + 1).reverse();
+                        route = [
+                            ...route.slice(0, i + 1),
+                            ...reversed,
+                            ...route.slice(j + 1)
+                        ];
+                        improved = true;
+                    }
+                }
+            }
+        }
+
+        return route;
     }
 
     // Calculate maximum radius from center to any location

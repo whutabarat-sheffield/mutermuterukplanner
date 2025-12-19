@@ -254,24 +254,29 @@ function handleOptimize() {
 // Display itinerary
 function displayItinerary(dailyPlans) {
     const container = document.getElementById('itinerary-content');
-    
+
     container.innerHTML = dailyPlans.map(day => `
         <div class="day-content" data-day="${day.day}">
             <h3>${day.date} - ${day.dayName}</h3>
             <p><strong>${day.totalLocations} locations</strong> | ${day.parkingMoves} parking move${day.parkingMoves !== 1 ? 's' : ''} | ~${day.estimatedTime.hours}h ${day.estimatedTime.remainingMinutes}m</p>
-            
+
             ${day.zones.length === 0 ? '<p style="color:#7f8c8d;margin-top:20px;">No locations scheduled for this day</p>' : ''}
-            
-            ${day.zones.map(zone => `
-                <div class="parking-zone">
+
+            ${day.zones.map((zone, zoneIdx) => `
+                <div class="parking-zone" data-day="${day.day}" data-zone="${zoneIdx}">
                     <h3>🅿️ Parking Zone ${zone.zoneNumber} <span style="font-size:0.9rem;font-weight:normal;color:#7f8c8d;">(${zone.totalLocations} stops)</span></h3>
                     <div class="zone-locations">
                         ${zone.locations.map((loc, idx) => `
-                            <div class="zone-location ${loc.infantFriendly ? 'infant' : ''}">
-                                <strong>${idx + 1}. ${loc.name}</strong>
+                            <div class="zone-location ${loc.infantFriendly ? 'infant' : ''}"
+                                 draggable="true"
+                                 data-day="${day.day}"
+                                 data-zone="${zoneIdx}"
+                                 data-index="${idx}">
+                                <span class="drag-handle">⋮⋮</span>
+                                <strong>${idx + 1}. ${escapeHtml(loc.name)}</strong>
                                 ${loc.infantFriendly ? ' 👶' : ''}
                                 ${loc.indoor ? ' 🏠' : ''}
-                                ${loc.notes ? `<br><small>${loc.notes}</small>` : ''}
+                                ${loc.notes ? `<br><small>${escapeHtml(loc.notes)}</small>` : ''}
                             </div>
                         `).join('')}
                     </div>
@@ -282,7 +287,10 @@ function displayItinerary(dailyPlans) {
             `).join('')}
         </div>
     `).join('');
-    
+
+    // Setup drag-and-drop handlers
+    setupDragAndDrop();
+
     // Show summary
     const summary = optimizer.generateSummary(dailyPlans);
     console.log('Trip Summary:', summary);
@@ -364,6 +372,116 @@ function showNotification(message, type = 'info') {
     
     // Could be enhanced with a toast notification system
     alert(message);
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Drag and drop state
+let dragState = {
+    sourceDay: null,
+    sourceZone: null,
+    sourceIndex: null
+};
+
+// Setup drag-and-drop event handlers
+function setupDragAndDrop() {
+    const items = document.querySelectorAll('.zone-location[draggable="true"]');
+
+    items.forEach(item => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('dragleave', handleDragLeave);
+        item.addEventListener('drop', handleDrop);
+    });
+}
+
+function handleDragStart(e) {
+    dragState.sourceDay = parseInt(this.dataset.day);
+    dragState.sourceZone = parseInt(this.dataset.zone);
+    dragState.sourceIndex = parseInt(this.dataset.index);
+
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', ''); // Required for Firefox
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    // Clean up any remaining drag-over states
+    document.querySelectorAll('.zone-location.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    // Only allow dropping within the same zone
+    const targetDay = parseInt(this.dataset.day);
+    const targetZone = parseInt(this.dataset.zone);
+
+    if (targetDay === dragState.sourceDay && targetZone === dragState.sourceZone) {
+        this.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+
+    const targetDay = parseInt(this.dataset.day);
+    const targetZone = parseInt(this.dataset.zone);
+    const targetIndex = parseInt(this.dataset.index);
+
+    // Only allow reordering within the same zone
+    if (targetDay !== dragState.sourceDay || targetZone !== dragState.sourceZone) {
+        return;
+    }
+
+    // Don't do anything if dropped on itself
+    if (targetIndex === dragState.sourceIndex) {
+        return;
+    }
+
+    reorderZoneLocations(
+        dragState.sourceDay,
+        dragState.sourceZone,
+        dragState.sourceIndex,
+        targetIndex
+    );
+}
+
+// Reorder locations within a zone
+function reorderZoneLocations(dayNum, zoneIdx, fromIdx, toIdx) {
+    const dayPlan = currentDailyPlans.find(d => d.day === dayNum);
+    if (!dayPlan || !dayPlan.zones[zoneIdx]) return;
+
+    const locations = dayPlan.zones[zoneIdx].locations;
+
+    // Remove item from source position
+    const [movedItem] = locations.splice(fromIdx, 1);
+
+    // Insert at target position
+    locations.splice(toIdx, 0, movedItem);
+
+    // Re-render the itinerary
+    displayItinerary(currentDailyPlans);
+
+    // Switch back to the current day and update map
+    switchDay(dayNum);
+
+    console.log(`Reordered: moved item from position ${fromIdx + 1} to ${toIdx + 1}`);
 }
 
 // Make functions globally accessible
