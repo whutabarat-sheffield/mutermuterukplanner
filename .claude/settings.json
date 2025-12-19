@@ -2,38 +2,11 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": {
-          "tool_name": "Edit",
-          "file_pattern": "**/task_context.md"
-        },
+        "matcher": "Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '🔍 Task context modified - consider running /check-constraints'"
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "tool_name": "Edit",
-          "file_pattern": "**/constraints.yaml"
-        },
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '🔍 Constraints modified - consider running /check-constraints'"
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "tool_name": "Write",
-          "file_pattern": "**/task_context.md"
-        },
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '🔍 Task context modified - consider running /check-constraints'"
+            "command": "echo '🔍 File modified - consider running /check-constraints'"
           }
         ]
       }
@@ -43,8 +16,8 @@
     "allow": [
       "Bash(gh issue create:*)",
       "Bash(gh issue list:*)",
-      "WebFetch(https://api.weatherapi.com/*)",
-      "WebFetch(https://api.openrouteservice.org/*)"
+      "WebFetch(domain:api.weatherapi.com)",
+      "WebFetch(domain:api.openrouteservice.org)"
     ]
   }
 }
