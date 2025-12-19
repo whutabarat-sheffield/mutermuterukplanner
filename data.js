@@ -27,6 +27,107 @@ const DEFAULT_LOCATIONS = [
     { id: 22, name: "Chinatown", lat: 51.5114, lng: -0.1315, infantFriendly: true, indoor: false, notes: "Lunch option. Open Christmas Day." }
 ];
 
+// Pre-planned itinerary from task_context.md - respects all constraints
+const PRE_PLANNED_SCHEDULE = {
+    1: { // Dec 24 - Arrival Day
+        theme: "Arrival & West End",
+        locations: ["Oxford Street / Primark", "Covent Garden", "Winter Lights"],
+        parkingNote: "NCP Cavendish Square"
+    },
+    2: { // Dec 25 - Christmas Day
+        theme: "Christmas Day - Relaxed",
+        locations: ["South Bank", "Chinatown"],
+        parkingNote: "Free street parking"
+    },
+    3: { // Dec 26 - Boxing Day
+        theme: "Markets, Abbey & Musical",
+        locations: ["Borough Market", "Westminster Abbey", "Soho", "West End Musical"],
+        parkingNote: "Snowsfields → Q-Park Westminster"
+    },
+    4: { // Dec 27 - Skiing
+        theme: "Snow Day",
+        locations: ["Snow Centre"],
+        parkingNote: "Free on-site parking"
+    },
+    5: { // Dec 28 - West London (Saturday)
+        theme: "West London",
+        locations: ["Notting Hill + Portobello Road", "Hyde Park", "Winter Wonderland", "Harrods"],
+        parkingNote: "Q-Park Queensway → Q-Park Park Lane"
+    },
+    6: { // Dec 29 - East/South London
+        theme: "East to South",
+        locations: ["Tower of London", "Tower Bridge", "London Eye"],
+        parkingNote: "Minories → Q-Park Westminster"
+    }
+};
+
+// Generate pre-planned itinerary using actual location data
+function generatePrePlannedItinerary(locations) {
+    const daysInfo = [
+        { date: 'Tuesday, Dec 24', dayName: 'Christmas Eve' },
+        { date: 'Wednesday, Dec 25', dayName: 'Christmas Day' },
+        { date: 'Thursday, Dec 26', dayName: 'Boxing Day' },
+        { date: 'Friday, Dec 27', dayName: 'Skiing Day' },
+        { date: 'Saturday, Dec 28', dayName: 'West London' },
+        { date: 'Sunday, Dec 29', dayName: 'Final Day' }
+    ];
+
+    const dailyPlans = [];
+
+    for (let day = 1; day <= 6; day++) {
+        const schedule = PRE_PLANNED_SCHEDULE[day];
+        const dayLocations = [];
+
+        // Find each location by name
+        for (const locName of schedule.locations) {
+            const loc = locations.find(l => l.name === locName);
+            if (loc) {
+                dayLocations.push(loc);
+            }
+        }
+
+        // Calculate center point for parking
+        let centerLat = 0, centerLng = 0;
+        if (dayLocations.length > 0) {
+            centerLat = dayLocations.reduce((sum, l) => sum + l.lat, 0) / dayLocations.length;
+            centerLng = dayLocations.reduce((sum, l) => sum + l.lng, 0) / dayLocations.length;
+        }
+
+        // Calculate walking radius
+        let maxRadius = 0;
+        for (const loc of dayLocations) {
+            const dist = calculateDistance(centerLat, centerLng, loc.lat, loc.lng);
+            if (dist > maxRadius) maxRadius = dist;
+        }
+
+        // Estimate time: 45min per location + 15min walking between
+        const totalMinutes = dayLocations.length * 45 + Math.max(0, dayLocations.length - 1) * 15;
+
+        dailyPlans.push({
+            day: day,
+            date: daysInfo[day - 1].date,
+            dayName: daysInfo[day - 1].dayName,
+            zones: [{
+                zoneNumber: 1,
+                parking: { lat: centerLat, lng: centerLng },
+                locations: dayLocations,
+                walkingRadius: maxRadius,
+                totalLocations: dayLocations.length,
+                parkingNote: schedule.parkingNote
+            }],
+            totalLocations: dayLocations.length,
+            parkingMoves: 1,
+            estimatedTime: {
+                minutes: totalMinutes,
+                hours: Math.floor(totalMinutes / 60),
+                remainingMinutes: totalMinutes % 60
+            }
+        });
+    }
+
+    return dailyPlans;
+}
+
 class LocationData {
     constructor() {
         const stored = this.loadFromStorage();

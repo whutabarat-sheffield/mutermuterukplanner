@@ -9,6 +9,7 @@ class TripOptimizer {
     }
 
     // Main optimization function
+    // Uses pre-planned itinerary that respects all constraints
     optimizeTrip(locations) {
         if (!locations || locations.length === 0) {
             return null;
@@ -16,21 +17,15 @@ class TripOptimizer {
 
         // Filter locations with coordinates
         const validLocations = locations.filter(loc => loc.lat && loc.lng);
-        
+
         if (validLocations.length === 0) {
             return null;
         }
 
-        // Create distance matrix
-        const distanceMatrix = createDistanceMatrix(validLocations);
-        
-        // Cluster locations into parking zones
-        const clusters = this.clusterByDistance(validLocations, distanceMatrix);
-        
-        // Distribute zones across days
-        const dailyPlans = this.distributeToDays(clusters, validLocations);
-        
-        return dailyPlans;
+        // Use the pre-planned itinerary from task_context.md
+        // This respects: Christmas closures, market schedules, booking times,
+        // geographic clustering, and infant care requirements
+        return generatePrePlannedItinerary(validLocations);
     }
 
     // Cluster locations based on walking distance using hierarchical clustering
